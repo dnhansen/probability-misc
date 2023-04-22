@@ -1,0 +1,1105 @@
+% Document setup
+\documentclass[article, a4paper, 11pt, oneside]{memoir}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[UKenglish]{babel}
+
+% Document info
+\newcommand\doctitle{Miscellaneous probability notes}
+\newcommand\docauthor{Danny Nygård Hansen}
+
+% Formatting and layout
+\usepackage[autostyle]{csquotes}
+\usepackage[final]{microtype}
+\usepackage{xcolor}
+\frenchspacing
+\usepackage{latex-sty/articlepagestyle}
+\usepackage{latex-sty/articlesectionstyle}
+
+% Fonts
+\usepackage{amssymb}
+\usepackage[largesmallcaps,partialup]{kpfonts}
+\DeclareSymbolFontAlphabet{\mathrm}{operators} % https://tex.stackexchange.com/questions/40874/kpfonts-siunitx-and-math-alphabets
+\linespread{1.06}
+% \let\mathfrak\undefined
+% \usepackage{eufrak}
+\DeclareMathAlphabet\mathfrak{U}{euf}{m}{n}
+\SetMathAlphabet\mathfrak{bold}{U}{euf}{b}{n}
+% https://tex.stackexchange.com/questions/13815/kpfonts-with-eufrak
+\usepackage{inconsolata}
+
+% Hyperlinks
+\usepackage{hyperref}
+\definecolor{linkcolor}{HTML}{4f4fa3}
+\hypersetup{%
+	pdftitle=\doctitle,
+	pdfauthor=\docauthor,
+	colorlinks,
+	linkcolor=linkcolor,
+	citecolor=linkcolor,
+	urlcolor=linkcolor,
+	bookmarksnumbered=true
+}
+
+% Equation numbering
+\numberwithin{equation}{chapter}
+
+% Footnotes
+\footmarkstyle{\textsuperscript{#1}\hspace{0.25em}}
+
+% Mathematics
+\usepackage{latex-sty/basicmathcommands}
+\usepackage{latex-sty/framedtheorems}
+\usepackage{latex-sty/topologycommands}
+\usepackage{latex-sty/probabilitycommands}
+% \usepackage{tikz-cd}
+\usepackage{tikz}
+\usetikzlibrary{cd}
+\usetikzlibrary{fit, patterns}
+\tikzcdset{arrow style=math font} % https://tex.stackexchange.com/questions/300352/equalities-look-broken-with-tikz-cd-and-math-font
+\usetikzlibrary{babel}
+
+% Lists
+\usepackage{enumitem}
+\setenumerate[0]{label=\normalfont(\arabic*)}
+
+% Bibliography
+\usepackage[backend=biber, style=authoryear, maxcitenames=2, useprefix]{biblatex}
+\addbibresource{references.bib}
+
+% Title
+\title{\doctitle}
+\author{\docauthor}
+
+\newcommand{\setF}{\mathbb{F}}
+\newcommand{\ev}{\mathrm{ev}}
+\newcommand{\calT}{\mathcal{T}}
+\newcommand{\calU}{\mathcal{U}}
+\newcommand{\calB}{\mathcal{B}}
+\newcommand{\calE}{\mathcal{E}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calD}{\mathcal{D}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\calG}{\mathcal{G}}
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calA}{\mathcal{A}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calR}{\mathcal{R}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\borel}{\mathcal{B}}
+\newcommand{\measurable}{\mathcal{M}}
+\newcommand{\wto}{\Rightarrow}
+\DeclarePairedDelimiter{\net}{\langle}{\rangle}
+\newcommand{\strucS}{\mathfrak{S}}
+\DeclarePairedDelimiter{\gen}{\langle}{\rangle} % Generating set
+\newcommand{\frakL}{\mathfrak{L}}
+
+\newenvironment{displaytheorem}{%
+	\begin{displayquote}\itshape%
+}{%
+	\end{displayquote}%
+}
+
+
+\usepackage{graphicx}
+\newcommand*{\flip}[1]{\scalebox{-1}[1]{\rotatebox[origin = c]{180}{#1}}}
+\DeclareRobustCommand{\Lambdabb}{\flip{\ensuremath{\mathbb{V}}}}
+% https://tex.stackexchange.com/questions/297680/how-can-i-rotate-pi-by-180-degrees/297742
+
+\begin{document}
+
+\maketitle
+
+\chapter{Moment-generating functions}
+
+\newcommand{\Rbar}{\altoverline{\reals}}
+
+\begin{definition}[Moment-generating functions]
+    Let $\rvar{X}$ be a $d$-dimensional random vector on $(\Omega, \calF, P)$. The \emph{moment-generating function} of $\rvar{X}$ is the map $M_{\rvar{X}} \colon \reals^d \to \Rbar$ given by
+    %
+    \begin{equation*}
+        M_{\rvar{X}}(t)
+            = \mean{\e^{\inner{t}{\rvar{X}}}}
+            = \int_{\Omega} \e^{\inner{t}{\rvar{X}}} \dif P,
+            \quad t \in \reals^d.
+    \end{equation*}
+\end{definition}
+
+
+\begin{remark}
+    The moment-generating function (MGF) always exists, though it may not be finite for $t \neq 0$. For $t = 0$ we always have $M_{\rvar{X}}(0) = 1$.
+\end{remark}
+
+
+\begin{proposition}
+    \label{thm:mgf_moments}
+    If the MGF of a random variable $\rvar{X}$ is finite in an interval around $0$, then the moments of $\rvar{X}$ of all orders exist and are finite.
+\end{proposition}
+
+\begin{remark}
+    We may relax the above finiteness condition as follows: Assume there exist $a < 0$ and $b > 0$ such that $M_{\rvar{X}}(a)$ and $M_{\rvar{X}}(b)$ are finite. For $t \in (a,b)$ we may write $t = \theta a + (1-\theta) b$ for some $\theta \in [0,1]$. We then have, by convexity of the exponential function,
+    %
+    \begin{equation*}
+        \e^{t\rvar{X}}
+            \leq \theta \e^{a\rvar{X}} + (1-\theta) \e^{b\rvar{X}},
+    \end{equation*}
+    %
+    implying that
+    %
+    \begin{equation*}
+        \mean{\e^{t\rvar{X}}}
+            \leq \theta \mean{\e^{a\rvar{X}}} + (1-\theta) \mean{\e^{b\rvar{X}}}
+            < \infty.
+    \end{equation*}
+    %
+    And so $M_{\rvar{X}}$ is finite in an interval around zero.
+\end{remark}
+
+\begin{proofof}[Proof of \cref{thm:mgf_moments}]
+    Let $M_{\rvar{X}}$ be finite in an open interval $I$ around zero, and choose $a \in I \setminus \{0\}$ such that $-a \in I$. Then
+    %
+    \begin{equation*}
+        \e^{-a\rvar{X}} + \e^{a\rvar{X}}
+            = 2 \sum_{n=0}^\infty \frac{a^{2n} \rvar{X}^{2n}}{(2n)!}.
+    \end{equation*}
+    %
+    All terms on the right-hand side are non-negative, so for $n \in \setN_0$ we have
+    %
+    \begin{equation*}
+        \e^{-a\rvar{X}} + \e^{a\rvar{X}}
+            \geq \frac{a^{2n} \rvar{X}^{2n}}{(2n)!},
+    \end{equation*}
+    %
+    so $\mean{\rvar{X}^{2n}} < \infty$, showing that all moments exist and are finite.
+\end{proofof}
+
+
+\begin{proposition}
+    If the MGF $M_{\rvar{X}}$ of a random variable $\rvar{X}$ is finite in an open interval $I$ around zero, then $M_{\rvar{X}}$ is smooth on $I$ and
+    %
+    \begin{equation*}
+        M_{\rvar{X}}^{(n)}(0) = \mean{\rvar{X}^n}.
+    \end{equation*}
+\end{proposition}
+
+
+\begin{proof}
+    We first claim that the function $\omega \mapsto \rvar{X}(\omega)^n \e^{t\rvar{X}(\omega)}$ is integrable for all $n \in \setN$ and $t \in I$. For choose $q > 1$ such that $qt \in I$ and let $p > 1$ be conjugate to $q$. Hölder's inequality then implies that
+    %
+    \begin{align*}
+        \int_\Omega \abs{\rvar{X}}^n \e^{t\rvar{X}} \dif P
+            &\leq \bigg( \int_\Omega \abs{\rvar{X}}^{pn} \dif P \bigg)^{1/p}
+                  \bigg( \int_\Omega \e^{qt\rvar{X}} \dif P \bigg)^{1/q} \\
+            &= \mean{\abs{\rvar{X}}^{pn}}^{1/p} M_{\rvar{X}}(qt)^{1/q}
+             < \infty,
+    \end{align*}
+    %
+    proving the claim.
+
+    We now claim that $M_{\rvar{X}}$ is smooth on $I$ with
+    %
+    \begin{equation*}
+        M_{\rvar{X}}^{(n)}(t) = \int_\Omega \rvar{X}^n \e^{t\rvar{X}} \dif P,
+        \quad t \in I,
+    \end{equation*}
+    %
+    for $n \in \setN_0$. For $n = 0$ this is obvious, so assume that the claim is true for some $n \in \setN_0$. Since the function $\rvar{X}^n \e^{t\rvar{X}}$ is differentiable in $t$ and the derivative $\rvar{X}^{n+1} \e^{t\rvar{X}}$ is integrable, this follows by exchanging differentiation and integration.
+\end{proof}
+
+
+\begin{example}
+    Let $X$ be an a.e. non-negative random variable. Then the MGF of $X$ is finite on $(-\infty, 0]$. Indeed, if $t \leq 1$ then
+    %
+    \begin{equation*}
+        M_{\rvar{X}}(t)
+            = \mean[\e^{tX}]
+            \leq \mean[1]
+            = 1.
+    \end{equation*}
+    %
+    However, lognormal [TODO].
+\end{example}
+
+
+\begin{lemma}
+    Let $\rvar{X}$ and $\rvar{Y}$ be random variables whose moments of all orders exist and are finite. Assume that $\mean{\rvar{X}^p} = \mean{\rvar{Y}^p}$ for all $p \in \setN$ and furthermore that there exists a $\rho > 0$ such that $\mean{\e^{\rho\abs{\rvar{X}}}} < \infty$. Then $\rvar{X} \sim \rvar{Y}$.
+\end{lemma}
+
+\begin{proof}
+    Thorbjørnsen, Sætning 1.5.2.
+\end{proof}
+
+
+\begin{theorem}
+    Let $\rvar{X}$ and $\rvar{Y}$ be random variables such that the MGF of $\rvar{X}$ is finite in an interval around zero. If $\mean{\rvar{X}^p} = \mean{\rvar{Y}^p}$ for all $p \in \setN$, then $\rvar{X} \sim \rvar{Y}$.
+\end{theorem}
+
+%
+\begin{proof}
+    Immediate from the lemma and the proposition.
+\end{proof}
+
+
+
+\chapter{Statistics}
+
+\section{Misc definitions}
+
+Let $\mu$ be a finite measure on $(\reals^d, \borel(\reals^d))$. Its \emph{distribution function} $F_\mu \colon \reals^d \to [0,\infty)$ is then given by
+%
+\begin{equation*}
+    F_\mu(x)
+        = \mu\bigl( (-\infty,x_1] \prod \cdots \prod (-\infty,x_d] \bigr)
+\end{equation*}
+%
+for $x = (x_1, \ldots, x_d) \in \reals^d$. If $\rvar{X} \colon \Omega \to \reals^d$ is a random variable on a probability space $(\Omega,\calF,P)$ we define its distribution function $F_{\rvar{X}}$ as the distribution function of its distribution $P_{\rvar{X}}$.
+
+\begin{definition}
+    An $\reals^d$-valued random variable $\rvar{X}$ is said to be \emph{continuous} if its distribution function $F_{\rvar{X}} \colon \reals^d \to \reals$ is continuous.
+\end{definition}
+%
+Notice that absolutely continuous random variables are automatically continuous.
+
+\newcommand{\mat}{\mathrm{M}}
+\newcommand{\trans}{^{\top}}
+\newcommand{\cov}{\operatorname{Cov}}
+\renewcommand{\mean}[2][]{\mathbb{E}\meanaux[#1]{#2}}
+
+\begin{definition}
+    Let $\rvar{X} = (\rvar{X}_{ij})$ be a random matrix with integrable entries. The \emph{mean matrix} of $\rvar{X}$ is the matrix $\mean{\rvar{X}} = (\mean{\rvar{X}_{ij}})$. If $\rvar{X}$ is a vector, then $\mean{\rvar{X}}$ is called the \emph{mean vector} of $\rvar{X}$.
+
+    Let $\rvar{X} = (\rvar{X}_1, \ldots, \rvar{X}_d)$ and $\rvar{Y} = (\rvar{Y}_1, \ldots, \rvar{Y}_p)$ be random vectors with square integrable coordinates. The \emph{cross covariance} of $\rvar{X}$ and $\rvar{Y}$ is the matrix
+    %
+    \begin{equation*}
+        \cov(\rvar{X},\rvar{Y})
+            = \mean[\big]{ (\rvar{X} - \mean{\rvar{X}}) (\rvar{Y} - \mean{\rvar{Y}})\trans }.
+    \end{equation*}
+    %
+    In other words, the $(i,j)$'th entry of $\cov(\rvar{X},\rvar{Y})$ is the covariance $\cov(\rvar{X}_i,\rvar{Y}_j)$. The \emph{covariance matrix} of $\rvar{X}$ is the matrix $\cov(\rvar{X}) = \cov(\rvar{X},\rvar{X})$.
+\end{definition}
+%
+Let $A \in \mat_{m \times d}(\reals)$, $B \in \mat_{d \times k}(\reals)$ and $C \in \mat_{n \times p}(\reals)$. It then follows directly from the definitions that
+%
+\begin{equation}
+    \label{eq:mean-cov-matrix-property}
+    \mean{A\rvar{X}B}
+        = A \mean{\rvar{X}} B
+    \quad \text{and} \quad
+    \cov(A\rvar{X}, C\rvar{Y})
+        = A \cov(\rvar{X}, \rvar{Y}) C\trans.
+\end{equation}
+%
+Also notice that
+%
+\begin{equation*}
+    \cov(\rvar{X}, \rvar{Y})\trans
+        = \cov(\rvar{Y}, \rvar{X}),
+\end{equation*}
+%
+which also follows from the definition. In particular, $\cov(\rvar{X})$ is symmetric.
+
+
+\begin{proposition}
+    Let $\rvar{X}, \rvar{X}_1, \rvar{X}_2, \ldots$ be integer-valued random variables. Then $\rvar{X}_n \implies \rvar{X}$ if and only if $p_{\rvar{X}_n}(x) \to p_{\rvar{X}}(x)$ for all $x \in \ints$.
+\end{proposition}
+
+\begin{proof}
+    First assume that $\rvar{X}_n \implies \rvar{X}$. Then $F_{\rvar{X}_n}(x) \to F_{\rvar{X}}(x)$ for $x \in \reals$ where $F_{\rvar{X}}$ is continuous, i.e. for $x \not\in \ints$. It follows that for $x \in \ints$,
+    %
+    \begin{equation*}
+        p_{\rvar{X}_n}(x)
+            = F_{\rvar{X}_n}(x + 1/2) - F_{\rvar{X}_n}(x - 1/2)
+            \to F_{\rvar{X}}(x + 1/2) - F_{\rvar{X}}(x - 1/2)
+            = p_{\rvar{X}}(x)
+    \end{equation*}
+    %
+    as claimed.
+
+    Conversely, assume that $p_{\rvar{X}_n}(x) \to p_{\rvar{X}}(x)$ for all $x \in \ints$. It suffices to show that $F_{\rvar{X}_n}(x) \to F_{\rvar{X}}(x)$ for all $x \in \reals$. First notice that for $a,b \in \reals$ we have
+    %
+    \begin{equation}
+        \label{eq:integer-rvar-convergence}
+        P(a < \rvar{X}_n \leq b)
+            \xrightarrow[n\to\infty]{}
+            P(a < \rvar{X} \leq b).
+    \end{equation}
+    %
+    Choose $R > 0$ such that
+    %
+    \begin{equation}
+        \label{eq:integer-rvar-approx}
+        P(-R < \rvar{X} \leq R)
+            \geq 1 - \epsilon,
+    \end{equation}
+    %
+    which implies that $F_{\rvar{X}}(-R) \leq \epsilon$. Furthermore, choose $N \in \naturals$ such that $n \geq N$ implies that
+    %
+    \begin{equation*}
+        P(-R < \rvar{X}_n \leq R)
+            \geq 1 - 2\epsilon,
+    \end{equation*}
+    %
+    which is possible by \cref{eq:integer-rvar-convergence} and \cref{eq:integer-rvar-approx}. This similarly implies that $F_{\rvar{X}_n}(-R) \leq 2\epsilon$. For $x \in \reals$ we thus have
+    %
+    \begin{align*}
+        \abs{ F_{\rvar{X}_n}(x) - F_{\rvar{X}}(x) }
+            &= \abs{ F_{\rvar{X}_n}(-R) + P(-R < \rvar{X}_n \leq x) - F_{\rvar{X}}(-R) - P(-R < \rvar{X}_n \leq x) } \\
+            &\leq \abs{ P(-R < \rvar{X}_n \leq x) - P(-R < \rvar{X}_n \leq x) } + 3\epsilon,
+    \end{align*}
+    %
+    which by \cref{eq:integer-rvar-convergence} implies that
+    %
+    \begin{equation*}
+        \limsup_{n\to\infty} \abs{ F_{\rvar{X}_n}(x) - F_{\rvar{X}}(x) }
+            \leq 3\epsilon.
+    \end{equation*}
+    %
+    Since $\epsilon$ was arbitrary, this implies that $F_{\rvar{X}_n}(x) \to F_{\rvar{X}}(x)$ as desired.
+\end{proof}
+
+
+\section{Families of distributions}
+
+\begin{definition}[Group family]
+    Let $G$ be a group and $(\Omega,\calF)$ a measurable space. A \emph{group family} or \emph{$G$-family} on $(\Omega,\calF)$ is a $G$-set $\calA$ that is a set of probability measures on $(\Omega,\calF)$, and such that $G$ acts transitively on $\calA$.
+\end{definition}
+%
+If $\mu$ is a probability measures on a measurable space $(\Omega,\calF)$, then a common way to obtain a group family from $\mu$ is to consider a group of bimeasurable maps $\Omega \to \Omega$ and let each map induce an image measure of $\mu$. If $\rvar{X}$ is a random variable with distribution $\mu$ and $\phi \colon \Omega \to \Omega$ is measurable, then $\phi(\rvar{X}) \sim \phi(\mu)$. Thus we may equivalently induce a group family by transforming a random variable with distribution $\mu$.
+
+Given $a \in \reals^d$ and $c \in (0,\infty)$ we define the following maps:
+%
+\begin{itemize}
+    \item The translation map $\tau_a \colon \reals^d \to \reals^d$ given by $\tau_a(x) = x + a$.
+    \item The scaling map $\sigma_c \colon \reals^d \to \reals^d$ given by $\sigma_c(x) = cx$.
+    \item The affine map $\phi_{a,c} = \tau_a \circ \sigma_c$, i.e. $\phi_{a,c}(x) = cx + a$.
+\end{itemize}
+%
+Notice that the collections of translation maps, scaling maps, and affine maps are each groups under function composition.
+
+
+\begin{definition}[Location family]
+    A \emph{location family} $\calA$ is a group family on $(\reals^d,\borel(\reals^d))$ induced by the collection of translation maps. That is, there is measure $\mu \in \calA$ such that each $\nu \in \calA$ is on the form $\tau_a(\mu)$ for some $a \in \reals^d$. This vector $a$ is called the \emph{location parameter} of the distribution $\nu$ with respect to $\mu$.
+\end{definition}
+%
+Let $\mu \in \calA$ and $a \in \reals^d$. We express the distribution function for $\tau_a(\mu)$ in terms of the distribution function for $\mu$. For $x \in \reals^d$ we have
+%
+\begin{align*}
+    F_{\tau_a(\mu)}(x)
+        &= \mu \circ \tau_a\inv \bigl( (-\infty,x_1] \prod \cdots \prod (-\infty,x_d] \bigr) \\
+        &= \mu \bigl( (-\infty,x_1-a_1] \prod \cdots \prod (-\infty,x_d-a_d] \bigr) \\
+        &= F_\mu(x-a) \\
+        &= (F_\mu \circ \tau_a\inv)(x).
+\end{align*}
+%
+Since a probability measure on $(\reals^d, \borel(\reals^d))$ is uniquely determined by its distribution function, this in particular shows that the location parameter (with respect to a given measure) of a distribution is unique.
+
+
+\begin{definition}[Scale family]
+    A \emph{scale family} $\calA$ is a group family on $(\reals^d,\borel(\reals^d))$ induced by the collection of scaling maps. That is, there is a $\mu \in \calA$ such that each $\nu \in \calA$ is on the form $\sigma_c(\mu)$ for some $c \in (0,\infty)$. This number $c$ is called the \emph{scale parameter} of the distribution $\nu$ with respect to $\mu$.
+\end{definition}
+%
+Let $\mu \in \calA$ and $c \in (0,\infty)$. We express the distribution function for $\sigma_c(\mu)$ in terms of the distribution function for $\mu$. For $x \in \reals^d$ we have
+%
+\begin{align*}
+    F_{\sigma_c(\mu)}(x)
+        &= \mu \circ \sigma_c\inv \bigl( (-\infty,x_1] \prod \cdots \prod (-\infty,x_d] \bigr) \\
+        &= \mu \bigl( (-\infty,x_1/c] \prod \cdots \prod (-\infty,x_d/c] \bigr) \\
+        &= F_\mu(x/c) \\
+        &= (F_\mu \circ \sigma_c\inv)(x).
+\end{align*}
+%
+Since a probability measure on $(\reals^d, \borel(\reals^d))$ is uniquely determined by its distribution function, this in particular shows that the scale parameter (with respect to a given measure) of a distribution is unique.
+
+
+\begin{definition}[Location-scale family]
+    A \emph{location-scale family} $\calA$ is a group family on $(\reals^d,\borel(\reals^d))$ induced by the collection of affine maps. That is, there is a $\mu \in \calA$ such that each $\nu \in \calA$ is on the form $\phi_{a,c}(\mu)$ for some $a \in \reals^d$ and $c \in (0,\infty)$. The vector $a$ is called the \emph{location parameter} and the number $c$ the \emph{scale parameter} of the distribution $\nu$ with respect to $\mu$.
+\end{definition}
+%
+Similar to the above, for $\mu \in \calA$, $a \in \reals^d$ and $c \in (0,\infty)$ we find that
+%
+\begin{equation*}
+    F_{\phi_{a,c}(\mu)}(x)
+        = F_\mu \biggl( \frac{x-a}{c} \biggr)
+        = (F_\mu \circ \phi_{a,c}\inv)(x).
+\end{equation*}
+%
+so again each parameter is uniquely determined.
+
+
+\chapter{Distributions}
+
+\section{The normal distribution}
+
+\begin{definition}
+    Let $\xi \in \reals$ and $\sigma \in (0,\infty)$. The \emph{normal distribution} with parameters $(\xi,\sigma^2)$ is the measure $N(\xi,\sigma^2)$ with density $g \colon \reals \to \reals$ given by
+    %
+    \begin{equation*}
+        g_{\xi,\sigma^2}(x)
+            = \frac{1}{\sqrt{2\pi\sigma^2}} \exp \biggl( - \frac{(x-\xi)^2}{2\sigma^2} \biggr)
+    \end{equation*}
+    %
+    with respect to the Lebesgue measure $\lambda$.
+\end{definition}
+
+\begin{lemma}
+    The normal distribution $N(\xi,\sigma^2)$ is a probability measure for all $\xi \in \reals$ and $\sigma \in (0,\infty)$.
+\end{lemma}
+
+\begin{proof}
+    Define maps $\eta \colon \reals^2 \to \reals$ by $\eta(x,y) = \norm{(x,y)}$ and $f \colon \reals \to \reals$ by $f(r) = 2\pi r \indicator{(0,\infty)}(r)$. We claim that $\lambda_2 \circ \eta\inv = f \lambda$. To see this, let $a \in \reals$ and notice that
+    %
+    \begin{equation*}
+        (\lambda_2 \circ \eta\inv)((-\infty,a])
+            = \lambda_2(\closure{B}_a(0))
+            = \pi a^2,
+    \end{equation*}
+    %
+    and that
+    %
+    \begin{equation*}
+        (f\lambda)((-\infty,a])
+            = \int_{-\infty}^a f \dif \lambda
+            = 2\pi \int_0^a r \dif r
+            = \pi a^2.
+    \end{equation*}
+    %
+    Next note that
+    %
+    \begin{align*}
+        \int_{\reals^2} \e^{-x^2-y^2} \dif \lambda_2(x,y)
+            &= \int_{\reals^2} \e^{-\eta(x,y)^2} \dif \lambda_2(x,y)
+             = \int_\reals \e^{-r^2} \dif (\lambda_2 \circ \eta\inv)(r) \\
+            &= \int_\reals f(r) \e^{-r^2} \dif r
+             = 2\pi \int_0^\infty r \e^{-r^2} \dif r
+             = \pi,
+    \end{align*}
+    %
+    after which Tonelli's theorem implies that
+    %
+    \begin{equation*}
+        \int_\reals \e^{-x^2} \dif x
+            = \sqrt{\pi}.
+    \end{equation*}
+    %
+    Performing the affine transformation $x \to (x-\xi)/(\sqrt{2}\sigma)$ then yields that
+    %
+    \begin{equation*}
+        \int_\reals \e^{-(x-\xi)^2/(2\sigma^2)} \dif x
+            = \sqrt{2\pi\sigma^2},
+    \end{equation*}
+    %
+    showing that $N(\xi,\sigma^2)$ is indeed a probability measure.
+\end{proof}
+
+
+\begin{lemma}
+    The gaussian $g \colon \reals \to \reals$ given by
+    %
+    \begin{equation*}
+        g(x) = \frac{1}{\sqrt{2\pi}} \e^{-x^2/2}
+    \end{equation*}
+    %
+    is its own Fourier transform. That is, $\hat{g} = g$.
+\end{lemma}
+%
+In other words, $g$ is an eigenfunction for the Fourier transform with eigenvalue $1$. Notice that $g$ is just the density function $g_{0,1}$ for the standard normal distribution.
+
+\begin{proof}
+    To prove this, first define the function $F \colon \reals \to \reals$ by
+    %
+    \begin{equation*}
+        F(t)
+            = \int_\reals \e^{\iu tx} \e^{-x^2/2} \dif x.
+    \end{equation*}
+    %
+    The $t$-derivative of the integrand is integrable, so differentiating under the integral sign yields
+    %
+    \begin{equation*}
+        F'(t)
+            = \iu \int_\reals \e^{\iu tx} x \e^{-x^2/2} \dif x.
+    \end{equation*}
+    %
+    Integrating by parts we get
+    %
+    \begin{align*}
+        t F(t)
+            &= \int_\reals t \e^{\iu tx} \e^{-x^2/2} \dif x
+             = \bigl[ -\iu \e^{\iu tx} \e^{-x^2/2} \bigr]_{-\infty}^{+\infty} - \iu \int_\reals \e^{\iu tx} x \e^{-x^2/2} \dif x \\
+            &= - F'(t),
+    \end{align*}
+    %
+    since the boundary term vanishes. To solve this differential equation, notice that
+    %
+    \begin{equation*}
+        \frac{\dif}{\dif t} \e^{t^2/2} F(t)
+            = t \e^{t^2/2} F(t) + \e^{t^2/2} F'(t)
+            = 0.
+    \end{equation*}
+    %
+    Hence $F(t) = c e^{-t^2/2}$ for some $c \in \complex$, and
+    %
+    \begin{equation*}
+        c
+            = F(0)
+            = \int_\reals \e^{-x^2/2} \dif x
+            = \sqrt{2\pi}.
+    \end{equation*}
+    %
+    Finally notice that
+    %
+    \begin{equation*}
+        \hat{g}(t)
+            = \frac{1}{2\pi} F(-t)
+            = \frac{1}{\sqrt{2\pi}} \e^{-t^2/2}
+            = g(t)
+    \end{equation*}
+    %
+    as claimed.
+\end{proof}
+
+
+\begin{proposition}
+    The Fourier transform of the normal distribution is given by
+    %
+    \begin{equation*}
+        \widehat{N(\xi,\sigma^2)}(t)
+            = \exp\biggl( \iu t \xi - \frac{1}{2} \sigma^2 t^2 \biggr),
+    \end{equation*}
+    %
+    where $\xi \in \reals$ and $\sigma \in (0,\infty)$.
+\end{proposition}
+
+\begin{proof}
+    First notice that $\widehat{N(\xi,\sigma^2)}(t) = \sqrt{2\pi} \hat{g}_{\xi,\sigma^2}(-t)$, so it suffices to find the Fourier transform of the density function. To this end, notice that $g_{\xi,\sigma^2}(x) = g_{0,\sigma^2}(x-\xi)$ and that $g_{0,\sigma^2}(x) = \sigma^{-1}g_{0,1}(\sigma^{-1}x)$, so
+    %
+    \begin{align*}
+        \hat{g}_{\xi,\sigma^2}(t)
+            &= \e^{-\iu t \xi} \hat{g}_{0,\sigma^2}(t)
+             = \e^{-\iu t \xi} \sigma^{-1} \bigl( \sigma \hat{g}_{0,1}(\sigma t) \bigr) \\
+            &= \e^{-\iu t \xi} g_{0,1}(\sigma t)
+             = \frac{1}{\sqrt{2\pi}} \exp \biggl( -\iu t \xi - \frac{1}{2} \sigma^2 t^2 \biggr),
+    \end{align*}
+    %
+    from which the claim follows.
+\end{proof}
+
+
+\begin{remark}
+    The Fourier transform of the normal distribution allows us to define the normal distribution with zero variance, i.e. $N(\xi,0)$, as the measure with Fourier transform given by $t \mapsto \e^{\iu t \xi}$. This is precisely the Dirac measure $\delta_\xi$ concentrated at $\xi$.
+\end{remark}
+
+\begin{definition}[Multivariate normal distribution]
+    Let $d \in \naturals$, $\xi \in \reals^d$, and let $\Sigma$ be a $d \times d$ positive semidefinite matrix. A $d$-dimensional random vector $\rvar{X}$ is said to have the \emph{$d$-variate normal distribution} with parameters $(\xi,\Sigma)$ if it has the characteristic function
+    %
+    \begin{equation*}
+        \phi_{\rvar{X}}(t)
+            = \exp\biggl( \iu \inner{t}{\xi} - \frac{1}{2} t\trans \Sigma t \biggr).
+    \end{equation*}
+    %
+    In this case, the distribution of $\rvar{X}$ is denoted $N_d(\xi,\Sigma)$. If $\Sigma$ is singular, then $\rvar{X}$ is said to be \emph{degenerate}.
+\end{definition}
+%
+Recall that a $\Sigma$ is said to be positive semidefinite if $t\trans \Sigma t \geq 0$ for all $t \in \reals^d$. At this point it is not clear that such random vectors exists, but in \cref{rem:multivariate-normal-construction} we will see how to construct $N_d(\xi,\Sigma)$-distributed random variables. Also notice that if $\Sigma$ is the $1 \times 1$ matrix $\sigma^2$, then $N_1(\xi,\Sigma) = N(\xi,\sigma^2)$.
+
+
+\renewcommand{\var}[1]{\mathbb{V}\varaux{#1}}
+
+\begin{proposition}
+    \label{thm:multivariate-normal-transform}
+    Let $\rvar X \sim N_d(\xi, \Sigma)$, $a \in \reals^m$ and $B \in \mat_{m \times d}(\reals)$. Then $a + B \rvar X \sim N_m(a + B\xi, B \Sigma B\trans)$. In particular, $\inner{t}{\rvar X} \sim N(\inner{t}{\xi}, t\trans \Sigma t)$ for all $t \in \reals^d$.
+
+    Conversely, if $\rvar X$ is an $d$-dimensional random variable and $\inner{t}{\rvar X}$ is normally distributed for all $t \in \reals^d$, then $\rvar X \sim N_d(\xi,\Sigma)$, where $\xi = \mean{\rvar{X}}$ and $\Sigma = \cov(\rvar{X})$.
+\end{proposition}
+
+\begin{proof}
+    First notice that $B \Sigma B\trans$ is clearly positive semidefinite since $\Sigma$ is. Furthermore,
+    %
+    \begin{align*}
+        \phi_{a+B \rvar X}(s)
+            &= \e^{\iu \inner{s}{a}} \exp \biggl( \iu \inner{B\trans s}{\xi} - \frac{1}{2} (B\trans s)\trans \Sigma (B\trans s) \biggr) \\
+            &= \exp \biggl( \iu \inner{s}{a + B\xi} - \frac{1}{2} s\trans (B \Sigma B\trans) s \biggr)
+    \end{align*}
+    %
+    for all $s \in \reals^m$ as desired.
+
+    For the converse direction, first assume that $\inner{t}{\rvar X}$ is normally distributed for all $t \in \reals^d$. In particular, the coordinates $\rvar X_1, \ldots, \rvar X_d$ of $\rvar{X}$ are normally distributed, and hence $\rvar X$ has a well-defined mean vector $\xi$ and covariance matrix $\Sigma$. Furthermore, we have $\mean{\inner{t}{\rvar X}} = \inner{t}{\xi}$ and $\var{\inner{t}{\rvar X}} = t\trans \Sigma t$ by \cref{eq:mean-cov-matrix-property}. It follows that
+    %
+    \begin{equation*}
+        \phi_{\rvar X}(t)
+            = \phi_{\inner{t}{\rvar X}}(1)
+            = \exp \biggl( \iu \inner{t}{\xi} - \frac{1}{2} t\trans \Sigma t \biggr)
+    \end{equation*}
+    %
+    for $t \in \reals^d$.
+\end{proof}
+
+
+\begin{corollary}
+    If $\rvar X \sim N_d(\xi, \Sigma)$, then $\xi = \mean{\rvar{X}}$ and $\Sigma = \cov(\rvar{X})$. In particular, if $\rvar{X} \sim N(\xi,\sigma^2)$ then $\var{\rvar{X}} = \sigma^2$.
+\end{corollary}
+
+
+\begin{remark}
+    \label{rem:multivariate-normal-construction}
+    Let $\xi \in \reals^d$, and let $\Sigma \in \mat_d(\reals)$ be positive semidefinite. We show that there exists a random variable $\rvar X$ with distribution $N_d(\xi, \Sigma)$.
+
+    First let $\Sigma^{1/2} \in \mat_d(\reals)$ be the (unique) positive semidefinite matrix such that $\Sigma = \Sigma^{1/2} \Sigma^{1/2}$. We might construct $\Sigma^{1/2}$ as follows: Since $\Sigma$ is symmetric there exists a diagonal matrix $D$ and an orthogonal matrix $Q$ such that $\Sigma = Q\trans DQ$. Since $\Sigma$ is positive semidefinite, the entries in $D$ are non-negative. Denote the diagonal entries $\lambda_1, \ldots, \lambda_d$. Let $D^{1/2}$ be the diagonal matrix whose entries along the diagonal are $\sqrt{\lambda_1}, \ldots, \sqrt{\lambda_d}$, and let $\Sigma^{1/2} = Q\trans D^{1/2} Q$.
+
+    Now let $\rvar U_1, \ldots \rvar U_d$ be i.i.d. $N(0,1)$-distributed variables, and define the random vector $\rvar U = (\rvar U_1, \ldots, \rvar U_d)$. For $t = (t_1, \ldots, t_d) \in \reals^d$, the characteristic function of $\rvar U$ is then
+    %
+    \begin{equation*}
+        \phi_{\rvar U}(t)
+            = \bigprod_{i=1}^d \phi_{\rvar U_i}(t_i)
+            = \bigprod_{i=1}^d \exp \biggl( - \frac{1}{2} t_i^2 \biggr)
+            = \exp \biggl( - \frac{1}{2} t\trans I t \biggr),
+    \end{equation*}
+    %
+    where $I$ is the identity matrix. It follows that $\rvar U \sim N_d(0, I)$. Letting $\rvar X = \xi + \Sigma^{1/2} \rvar U$, we find that $\rvar X \sim N_d(\xi, \Sigma)$.
+\end{remark}
+
+
+\begin{proposition}
+    Let $\rvar{X} \sim N_d(\xi,\Sigma)$. Then $\rvar{X}$ has a density with respect to the Lebesgue measure $\lambda_d$ if and only if it is non-degenerate. In this case this density is given by
+    %
+    \begin{equation*}
+        f_{\rvar{X}}(x)
+            = \frac{1}{\sqrt{ (2\pi)^d \det\Sigma }} \exp\biggl( - \frac{1}{2} (x - \xi)\trans\Sigma\inv(x - \xi) \biggr)
+    \end{equation*}
+    %
+    for $x \in \reals^d$.
+\end{proposition}
+
+\begin{proof}
+    First assume that $\rvar{X}$ is degenerate such that $\Sigma$ is singular. Then $\Sigma^{1/2}$ is also singular, so the column space $R(\Sigma^{1/2})$ is a proper subspace of $\reals^d$. It follows that $\lambda_d(\xi + R(\Sigma^{1/2})) = 0$. On the other hand, $\rvar{X} = \xi + \Sigma^{1/2} \rvar{U}$ for some $\rvar{U} \sim N_d(0,I)$, so $\rvar{X}$ is concentrated on $\xi + R(\Sigma^{1/2})$. Hence $P_{\rvar{X}}(\xi + R(\Sigma^{1/2})) = 1$, where $P_{\rvar{X}}$ is the distribution of $\rvar{X}$. Thus $\rvar{X}$ does not have a density with respect to $\lambda_d$.
+
+    Conversely assume that $\Sigma$ is invertible. Then $\Sigma^{1/2}$ is also invertible, and the map $x \mapsto \xi + \Sigma^{1/2} x$ is a $C^1$-diffeomorphism whose Jacobi matrix is constant and equal to $\Sigma^{1/2}$. The density of $\rvar{U}$ is given by
+    %
+    \begin{equation*}
+        f_{\rvar{U}}(x)
+            = \bigprod_{i=1}^d f_{\rvar{U}_i}(x_i)
+            = (2\pi)^{-d/2} \bigprod_{i=1}^d \e^{-x_i^2/2}
+            = (2\pi)^{-d/2} \e^{-\norm{x}^2/2}
+    \end{equation*}
+    %
+    for $x = (x_1, \ldots, x_d) \in \reals^d$. Making the change of variables $x \to \Sigma^{-1/2} (x - \xi)$ we obtain
+    %
+    \begin{align*}
+        f_{\rvar{X}}(x)
+            &= \frac{1}{\sqrt{ (2\pi)^d \det\Sigma }} \exp\biggl( - \frac{1}{2} \norm{\Sigma^{-1/2}(x - \xi)}^2 \biggr) \\
+            &= \frac{1}{\sqrt{ (2\pi)^d \det\Sigma }} \exp\biggl( - \frac{1}{2} (x - \xi)\trans\Sigma\inv(x - \xi) \biggr)
+    \end{align*}
+    %
+    as desired.
+\end{proof}
+
+
+\begin{proposition}
+    Let $\rvar{X} \sim N_d(\xi,\Sigma)$, and consider a decomposition $\rvar{X} = (\rvar{X}^{(1)}, \rvar{X}^{(2)})$ where $\rvar{X}^{(i)}$ is $d_i$-dimensional and $d_1 + d_2 = d$. Similarly decompose $\Sigma$ as
+    %
+    \begin{equation*}
+        \Sigma =
+            \begin{pmatrix}
+                \Sigma_{11} & \Sigma_{12} \\
+                \Sigma_{21} & \Sigma_{22}
+            \end{pmatrix},
+    \end{equation*}
+    %
+    where $\Sigma_{ij} \in \mat_{n_i \times n_j}(\reals)$. Then $\rvar{X^{(1)}}$ and $\rvar{X^{(2)}}$ are independent if and only if $\Sigma_{12} = \cov(\rvar{X^{(1)}},\rvar{X^{(2)}}) = 0$.
+\end{proposition}
+
+\begin{proof}
+    Assume that $\Sigma_{12} = 0$. Decompose $\xi = (\xi^{(1)}, \xi^{(2)})$ into a $d_1$- and $d_2$-dimensional component, and similarly decompose $t = (t^{(1)}, t^{(2)}) \in \reals^d$. Then
+    %
+    \begin{align*}
+        \phi_{\rvar{X}}(t)
+            &= \exp \biggl( \iu \inner{t}{\xi} - \frac{1}{2} t\trans \Sigma t \biggr) \\
+            &= \exp \biggl( \iu \inner{t^{(1)}}{\xi^{(1)}} + \iu \inner{t^{(2)}}{\xi^{(2)}} - \frac{1}{2} {t^{(1)}}\trans \Sigma_{11} t^{(1)} - \frac{1}{2} {t^{(2)}}\trans \Sigma_{22} t^{(2)} \biggr) \\
+            &= \exp \biggl( \iu \inner{t^{(1)}}{\xi^{(1)}} - \frac{1}{2} {t^{(1)}}\trans \Sigma_{11} t^{(1)} \biggr)
+            \exp \biggl( \iu \inner{t^{(2)}}{\xi^{(2)}} - \frac{1}{2} {t^{(2)}}\trans \Sigma_{22} t^{(2)} \biggr) \\
+            &= \phi_{\rvar{X}^{(1)}}(t^{(1)}) \phi_{\rvar{X}^{(2)}}(t^{(2)}).
+    \end{align*}
+    %
+    It follows that $\rvar{X}^{(1)}$ and $\rvar{X}^{(2)}$ are independent.
+\end{proof}
+
+
+\begin{proposition}
+    Let $\rvar{X}^{(i)} \sim N_{d_i}(\xi^{(i)},\Sigma_{ii})$ for $i = 1,2$ with $\rvar{X}^{(1)}$ and $\rvar{X}^{(2)}$ independent, and let $\rvar{X} = (\rvar{X}^{(1)}, \rvar{X}^{(2)})$. Then $\rvar{X} \sim N_{d_1 + d_2}(\xi,\Sigma)$, where
+    %
+    \begin{equation*}
+        \xi
+            = (\xi^{(1)}, \xi^{(2)})
+        \quad \text{and} \quad
+        \Sigma =
+            \begin{pmatrix}
+                \Sigma_{11} & 0 \\
+                0           & \Sigma_{22}
+            \end{pmatrix}.
+    \end{equation*}
+\end{proposition}
+
+\begin{proof}
+    Let $t^{(i)} \in \reals^{d_i}$ for $i = 1,2$ and put $t = (t^{(1)}, t^{(2)})$. Then
+    %
+    \begin{align*}
+        \phi_{\rvar{X}}(t)
+            &= \mean{\e^{\iu \inner{t}{\rvar{X}}}}
+             = \mean{\e^{\iu \inner{t^{(1)}}{\rvar{X}^{(1)}}}} \mean{\e^{\iu \inner{t^{(2)}}{\rvar{X}^{(2)}}}}
+             = \phi_{\rvar{X}^{(1)}}(t^{(1)}) \phi_{\rvar{X}^{(2)}}(t^{(2)}) \\
+            &= \exp \biggl( \iu \inner{t^{(1)}}{\xi^{(1)}} - \frac{1}{2} {t^{(1)}}\trans \Sigma_{11} t^{(1)} \biggr)
+            \exp \biggl( \iu \inner{t^{(2)}}{\xi^{(2)}} - \frac{1}{2} {t^{(2)}}\trans \Sigma_{22} t^{(2)} \biggr) \\
+            &= \exp \biggl( \iu \inner{t^{(1)}}{\xi^{(1)}} + \iu \inner{t^{(2)}}{\xi^{(2)}} - \frac{1}{2} {t^{(1)}}\trans \Sigma_{11} t^{(1)} - \frac{1}{2} {t^{(2)}}\trans \Sigma_{22} t^{(2)} \biggr) \\
+            &= \exp \biggl( \iu \inner{t}{\xi} - \frac{1}{2} t\trans \Sigma t \biggr),
+    \end{align*}
+    %
+    showing that $\rvar{X} \sim N_{d_1+d_2}(\xi,\Sigma)$. Alternatively we may note hat
+    %
+    \begin{equation*}
+        \inner{t^{(1)}}{\rvar{X}^{(1)}} + \inner{t^{(2)}}{\rvar{X}^{(2)}}
+            \sim N \bigl( \inner{t^{(1)}}{\xi^{(1)}} + \inner{t^{(2)}}{\xi^{(2)}}, {t^{(1)}}\trans \Sigma_{11}t^{(1)} + {t^{(2)}}\trans \Sigma_{22}t^{(2)} \bigr),
+    \end{equation*}
+    %
+    which implies that
+    %
+    \begin{equation*}
+        \inner{t}{\rvar{X}}
+            \sim N(\inner{t}{\xi}, t\trans \Sigma t).
+    \end{equation*}
+    %
+    The claim then follows from \cref{thm:multivariate-normal-transform}.
+\end{proof}
+
+
+\newcommand{\frakX}{\mathfrak{X}}
+\newcommand{\frakY}{\mathfrak{Y}}
+
+% \begin{remark}
+%     Distributions (i.e. probability measures) are often defined in terms of the distribution of transformed random variables. For instance, if $\rvar{X} \sim N(0,1)$ then by definition $\rvar{X}^2 \sim \chi^2_1$.
+
+%     Let $(\Omega,\calF,P)$ and $(\Omega',\calF',P')$ be probability spaces, let $(\frakX,\calE)$ be a measurable space, and let $\rvar{X} \colon \Omega \to \frakX$ and $\rvar{Y} \colon \Omega' \to \frakX$ be random variables with $\rvar{X} \sim \rvar{Y}$. If $(\frakY,\calG)$ is another measurable space and $\phi \colon \frakX \to \frakY$ is measurable, then we claim that $\phi(\rvar{X}) \sim \phi(\rvar{Y})$. For then
+%     %
+%     \begin{equation*}
+%         P_{\phi(\rvar{X})}
+%             = P_{\rvar{X}} \circ \phi\inv
+%             = P'_{\rvar{Y}} \circ \phi\inv
+%             = P'_{\phi(\rvar{Y})}.
+%     \end{equation*}
+%     %
+%     This justifies defining distributions by applying measurable transformations to random variables. 
+% \end{remark}
+
+
+% \begin{remark}
+%     If $\rvar{X} \colon \Omega \to \frakX$ is a random variable on a probability space $(\Omega,\calF,P)$ and $\phi \colon \frakX \to \frakY$ is bimeasurable, then we are often in the situation where the distribution of $\phi(\rvar{X})$ is known, say that $\phi(\rvar{X}) \sim \mu$. But then notice that
+%     %
+%     \begin{equation*}
+%         P_{\rvar{X}}
+%             = P_{\phi\inv(\phi(\rvar{X}))}
+%             = \phi\inv(P_{\phi(\rvar{X})})
+%             = \phi\inv(\mu),
+%     \end{equation*}
+%     %
+%     i.e. the pushforward (or image measure) of $\mu$ by $\phi\inv$, or equivalently the pullback of $\mu$ by $\phi$.
+
+%     For instance, if $\rvar{X}/\sigma^2 \sim \chi^2_k$, then we also often write this $\rvar{X} \sim \sigma^2 \chi^2_k$. This notation is then consistent with the above notation for image measures.
+% \end{remark}
+
+
+\section{The $\Gamma$-distribution}
+
+\begin{definition}
+    The \emph{gamma distribution} with shape parameter $r > 0$ and rate parameter $\beta > 0$ is the probability measure $\Gamma(r,\beta)$ with density $f \colon \reals \to \reals$ given by
+    %
+    \begin{equation*}
+        f(x)
+            = \frac{\beta^r}{\Gamma(r)} x^{r-1} \e^{-\beta x} \indicator{(0,\infty)}(x)
+    \end{equation*}
+    %
+    with respect to the Lebesgue measure.
+\end{definition}
+%
+An alternative parametrisation of the gamma distribution is in terms of the scale parameter $\theta = 1/\beta$. With this parametrisation the density function becomes
+%
+\begin{equation*}
+    f(x)
+        = \frac{1}{\Gamma(r)\theta^r} x^{r-1} \e^{-x/\theta} \indicator{(0,\infty)}(x).
+\end{equation*}
+
+
+\begin{proposition}
+    Let $\rvar{X} \sim \Gamma(r,\beta)$, and let $\rvar{X}_1, \ldots, \rvar{X}_n$ be independent random variables with $\rvar{X}_i \sim \Gamma(r_i,\beta)$.
+    %
+    \begin{enumprop}
+        \item The moment-generating function of $\rvar{X}$ is given by
+        %
+        \begin{equation*}
+            M_{\rvar{X}}(t)
+                = \biggl( \frac{\beta}{\beta - t} \biggr)^r
+        \end{equation*}
+        %
+        for $t < \beta$.
+
+        \item We have $\sum_{i=1}^n \rvar{X}_i \sim \Gamma(r_1 + \cdots + r_n, \beta)$.
+
+        \item If $c > 0$, then $c\rvar{X} \sim \Gamma(r,\beta/c)$. In other words, $\sigma_c(\Gamma(r,\beta)) = \Gamma(r,\beta/c)$.
+    \end{enumprop}
+\end{proposition}
+
+\begin{proof}
+\begin{proofsec}
+    \item[(i)]
+    For $t < \beta$ we have
+    %
+    \begin{equation*}
+        M_{\rvar{X}}(t)
+            = \int_0^\infty \e^{tx} f(x) \dif x
+            = \frac{\beta^r}{\Gamma(r)} \int_0^\infty x^{r-1} \e^{-(\beta-t)x} \dif x
+            = \frac{\beta^r}{\Gamma(r)} \frac{\Gamma(r)}{(\beta-t)^r}
+            = \biggl( \frac{\beta}{\beta - t} \biggr)^r
+    \end{equation*}
+    %
+    as claimed.
+
+    \item[(ii)]
+    Since the MGF for each $\rvar{X}_i$ is finite in a neighbourhood of zero, this follows easily from (i).
+
+    \item[(iii)] Notice that
+    %
+    \begin{equation*}
+        M_{c\rvar{X}}(t)
+            = M_{\rvar{X}}(ct)
+            = \biggl( \frac{\beta}{\beta - ct} \biggr)^r
+            = \biggl( \frac{\beta/c}{\beta/c - t} \biggr)^r
+    \end{equation*}
+    %
+    for $t < \beta/c$, so $c\rvar{X} \sim \Gamma(r,\beta/c)$ as claimed.
+\end{proofsec}
+\end{proof}
+
+Instead using the parametrisation in terms of the scale parameter, (iii) shows that, for fixed $r > 0$, the collection $\set{ \Gamma(r,\theta) }{ \theta \in (0,\infty) }$ is a scale family with scale parameter $\theta$ with respect to $\Gamma(r,1)$: For
+%
+\begin{equation*}
+    \Gamma(r,\theta)
+        = \sigma_\theta \bigl( \Gamma(r,1) \bigr)
+\end{equation*}
+%
+for all $\theta > 0$.
+
+
+\begin{definition}
+    Let $\rvar{X}_1, \ldots, \rvar{X}_k \sim N(0,1)$ be independent random variables. The distribution of the random variable
+    %
+    \begin{equation*}
+        \rvar{Y}
+            = \rvar{X}_1^2 + \cdots + \rvar{X}_k^2
+    \end{equation*}
+    %
+    is called the \emph{$\chi^2$-distribution} with $k$ degrees of freedom and is denoted $\chi^2_k$.
+\end{definition}
+
+
+\begin{proposition}
+    \begin{enumprop}
+        \item Let $\rvar{X}_1, \ldots, \rvar{X}_n$ be independent random variables with $\rvar{X}_i \sim \chi^2_{k_i}$. The random variable $\sum_{i=1}^n \rvar{X}_i$ has the $\chi^2$-distribution with $k_1 + \cdots + k_n$ degrees of freedom.
+
+        \item The distribution $\chi^2_k$ equals the distribution $\Gamma(k/2,1/2)$. In particular, $\chi^2_k$ has the density $f \colon \reals \to \reals$ given by
+        %
+        \begin{equation*}
+            f(x)
+                = \frac{ x^{k/2-1} \e^{-x/2} }{2^{k/2} \Gamma(k/2)} \indicator{(0,\infty)}(x)
+        \end{equation*}
+        %
+        with respect to the Lebesgue measure.
+    \end{enumprop}
+\end{proposition}
+
+\begin{proof}
+\begin{proofsec}
+    \item[(i)]
+    Let $\{\rvar{Z}_{ij}\}_{1 \leq i \leq n, 1 \leq j \leq k_i}$ be a collection of independent $N(0,1)$ random variables. Then $\rvar{X}_i \sim \sum_{j=1}^{k_i} \rvar{Z}_{ij}^2$, so
+    %
+    \begin{equation*}
+        \sum_{i=1}^n \rvar{X}_i
+            \sim \sum_{i=1}^n \sum_{j=1}^{k_i} \rvar{Z}_{ij}^2,
+    \end{equation*}
+    %
+    which is $\chi^2$-distributed with $k_1 + \cdots + k_n$ degrees of freedom.
+
+    \item[(ii)]
+    Let $\rvar{Z} \sim N(0,1)$ be a random variable on a probability space $(\Omega,\calF,P)$. For $x > 0$ we have
+    %
+    \begin{equation*}
+        P(\rvar{Z}^2 \leq x)
+            = P(-\sqrt{x} \leq \rvar{Z} \leq \sqrt{x})
+            = \frac{1}{\sqrt{2\pi}} \int_{-\sqrt{x}}^{\sqrt{x}} \e^{-t^2/2} \dif t
+            = \sqrt{\frac{2}{\pi}} \int_0^{\sqrt{x}} \e^{-t^2/2} \dif t.
+    \end{equation*}
+    %
+    To compute this integral, notice that the function $x \mapsto \sqrt{x}$ is $C^1$ on $(0,\infty)$. It follows [Apostol 7.36] that, for $\epsilon > 0$,
+    %
+    \begin{equation*}
+        \sqrt{\frac{2}{\pi}} \int_{\sqrt{\epsilon}}^{\sqrt{x}} \e^{-t^2/2} \dif t
+            = \sqrt{\frac{2}{\pi}} \int_\epsilon^x \e^{-s/2} \frac{1}{2\sqrt{s}} \dif s
+            = \int_\epsilon^x \frac{1}{\sqrt{2\pi s}} \e^{-s/2} \dif s.
+    \end{equation*}
+    %
+    Since the integrands on both the left- and right-hand side are non-negative, letting $\epsilon \downarrow 0$ the monotone convergence theorem implies that
+    %
+    \begin{equation*}
+        P(\rvar{Z}^2 \leq x)
+            = \int_0^x \frac{1}{\sqrt{2\pi s}} \e^{-s/2} \dif s.
+    \end{equation*}
+    %
+    % Let $\rvar{Z} \sim N(0,1)$ be a random variable on a probability space $(\Omega,\calF,P)$. For $x > 0$ we have
+    % %
+    % \begin{equation*}
+    %     P(\rvar{Z}^2 \leq x)
+    %         = P(-\sqrt{x} \leq \rvar{Z} \leq \sqrt{x})
+    %         = \frac{1}{\sqrt{2\pi}} \int_{-\sqrt{x}}^{\sqrt{x}} \e^{-t^2/2} \dif t,
+    % \end{equation*}
+    % %
+    % and differentiating with respect to $x$ we obtain $\e^{-x/2}/\sqrt{2\pi x}$. For $y \in (0,x)$ we thus have
+    % %
+    % \begin{equation*}
+    %     P(\rvar{Z}^2 \leq x) - P(\rvar{Z}^2 \leq y)
+    %         = \int_y^x \frac{1}{\sqrt{2\pi t}} \e^{-t/2} \dif t.
+    % \end{equation*}
+    % %
+    % Letting $y \downarrow 0$, the left-hand side approaches $P(\rvar{Z}^2 \leq x)$ by continuity of $P$, so the monotone convergence theorem implies that
+    % %
+    % \begin{equation*}
+    %     P(\rvar{Z}^2 \leq x)
+    %         = \int_0^x \frac{1}{\sqrt{2\pi t}} \e^{-t/2} \dif t.
+    % \end{equation*}
+    %
+    The integrand is precisely the probability density function of the $\Gamma(1/2,1/2)$-distribution, so $\chi^2_1 = \Gamma(1/2,1/2)$. By the additivity of both the $\chi^2$-distribution and the gamma distribution, we have $\chi^2_k = \Gamma(k/2,1/2)$.
+\end{proofsec}
+\end{proof}
+
+\newcommand{\Exp}{\mathrm{Exp}}
+
+\begin{definition}
+    The \emph{exponential distribution} with rate parameter $\lambda > 0$ is given by $\Exp(\lambda) = \Gamma(1,\lambda)$. Hence it has the density $f \colon \reals \to \reals$ given by
+    %
+    \begin{equation*}
+        f(x)
+            = \lambda \e^{-\lambda x} \indicator{(0,\infty)}(x)
+    \end{equation*}
+    %
+    with respect to the Lebesgue measure.
+\end{definition}
+%
+Notice that the distribution function $F \colon \reals \to \reals$ of the exponential distribution is given by
+%
+\begin{equation*}
+    F(x)
+        = (1 - \e^{-\lambda x}) \indicator{(0,\infty)}(x).
+\end{equation*}
+%
+As with the $\Gamma$-distribution we may also parametrise the exponential distribution using the scale parameter $\theta = 1/\lambda$. With this parametrisation the exponential distributions constitute a scale family.
+
+The distribution of a random variable $\rvar{X} \colon \Omega \to \reals$ on a probability space $(\Omega, \calF, P)$ is said to be \emph{memoryless} if the image of $\rvar{X}$ lies in $[0,\infty)$, and
+%
+\begin{equation*}
+    P(\rvar{X} > s+t \mid \rvar{X} > s)
+        = P(\rvar{X} > t)
+\end{equation*}
+%
+for all $s,t \geq 0$.
+
+\begin{proposition}
+    The exponential distribution is the only continuous memoryless distribution on $(\reals,\borel(\reals))$.
+\end{proposition}
+
+\begin{proof}
+    Let $\rvar{X} \sim \Exp(\lambda)$, and let $s,t \geq 0$. Then
+    %
+    \begin{align*}
+        P(\rvar{X} > s+t \mid \rvar{X} > s)
+            &= \frac{P(\rvar{X} > s+t \text{ and } \rvar{X} > s)}{P(\rvar{X} > s)}
+             = \frac{P(\rvar{X} > s+t)}{P(\rvar{X} > s)} \\
+            &= \frac{ \e^{-\lambda(s+t)} }{ \e^{-\lambda s}}
+             = \e^{-\lambda t}
+             = P(\rvar{X} > t),
+    \end{align*}
+    %
+    proving that the exponential distribution is memoryless.
+    
+    Conversely, assume that $\rvar{X}$ is a continuous random variable with memoryless distribution. Define the \emph{survival function} $S \colon [0,\infty) \to [0,1]$ by $S(t) = P(\rvar{X} > t)$. Memorylessness then means that $S(s+t) = S(s) S(t)$ for all $s,t \geq 0$. Solving this functional equation in the usual manner yields that $S(q) = S(1)^q = \e^{-\lambda q}$ for all $q \in \rationals \intersect [0,\infty)$, where $\lambda = -\log S(1)$. Since $S$ must be continuous for $\rvar{X}$ to be continuous, this identity holds for all nonnegative reals. Furthermore, $\lambda > 0$ since $S(t)$ must approach zero for $t \to \infty$. Hence the distribution function of $\rvar{X}$ is the distribution function of the exponential distribution with rate parameter $\lambda$, so $\rvar{X} \sim \Exp(\lambda)$ as claimed.
+\end{proof}
+
+
+
+\begin{definition}
+    Let $\rvar{Z} \sim N(0,1)$ and $\rvar{W} \sim \chi^2_n$ be independent random variables. The distribution of the random variable
+    %
+    \begin{equation*}
+        \rvar{T}
+            = \frac{ \rvar{Z} }{ \sqrt{\rvar{W}/n} }
+    \end{equation*}
+    %
+    is called the \emph{$t$-distribution} with $n$ degrees of freedom and is denoted $t_n$.
+\end{definition}
+%
+Note that $\rvar{W} > 0$ almost surely, so the above definition makes sense.
+
+
+\newcommand{\avg}[1]{\altoverline{#1}}
+
+\begin{proposition}
+    Let $\rvar{X}_1, \ldots, \rvar{X}_n$ be independent $N(\xi,\sigma^2)$ random variables and define
+    %
+    \begin{equation*}
+        \avg{\rvar{X}}
+            = \frac{1}{n} \sum_{i=1}^n \rvar{X}_i
+        \quad \text{and} \quad
+        \rvar{SSD}
+            = \sum_{i=1}^n (\rvar{X}_i - \avg{\rvar{X}})^2.
+    \end{equation*}
+    %
+    Then $\avg{\rvar{X}}$ and $\rvar{SSD}$ are independent, and $\rvar{SSD} \sim \sigma^2 \chi^2_{n-1}$.
+\end{proposition}
+
+\begin{proof}
+    We first show independence. First notice that the vector $(\avg{\rvar{X}}, \rvar{X}_1 - \avg{\rvar{X}}, \ldots, \rvar{X}_n - \avg{\rvar{X}})$ is normally distributed. Now notice that
+    %
+    \begin{equation*}
+        \cov(\avg{\rvar{X}}, \rvar{X}_j)
+            = \frac{1}{n} \sum_{i=1}^n \cov(\rvar{X}_i, \rvar{X}_j)
+            = \frac{\sigma^2}{n},
+    \end{equation*}
+    %
+    so $\cov(\avg{\rvar{X}}, \rvar{X}_j - \avg{\rvar{X}}) = 0$ for all $j$. But then $\avg{\rvar{X}}$ is independent of the vector $(\rvar{X}_1 - \avg{\rvar{X}}, \ldots, \rvar{X}_n - \avg{\rvar{X}})$, and $\rvar{SSD}$ is a function of this vector, proving the claim.
+
+    Next we show that $\rvar{SSD} \sim \sigma^2 \chi^2_{n-1}$. First let $\rvar{Z}_1, \ldots, \rvar{Z}_n$ be independent $N(0,1)$ random variables and notice that the vectors $(\rvar{Z}_1 - \avg{\rvar{Z}}, \ldots, \rvar{Z}_n - \avg{\rvar{Z}})$ and $(\avg{\rvar{Z}}, \ldots, \avg{\rvar{Z}})$ are orthogonal, so Pythagoras' theorem implies that
+    %
+    \begin{equation*}
+        \sum_{i=1}^n \rvar{Z}_i^2
+            = \rvar{SSD} + n \avg{\rvar{Z}}^2.
+    \end{equation*}
+    %
+    By the above, the right-hand side terms are independent, so the MGF of the right-hand side is the product of the MGFs of each term. Hence
+    %
+    \begin{equation*}
+        \biggl( \frac{1}{1 - 2t} \biggr)^{n/2}
+            = M_{\rvar{SSD}}(t) \biggl( \frac{1}{1 - 2t} \biggr)^{1/2},
+    \end{equation*}
+    %
+    implying that
+    %
+    \begin{equation*}
+        M_{\rvar{SSD}}(t)
+            = \biggl( \frac{1}{1 - 2t} \biggr)^{(n-1)/2}
+    \end{equation*}
+    %
+    for $t$ in a neighbourhood of $0$. It follows that $\rvar{SSD} \sim \chi^2_{n-1}$. TODO: General case.
+\end{proof}
+
+
+\nocite{*}
+
+\printbibliography
+
+
+\end{document}
